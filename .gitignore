@@ -9,3 +9,4 @@ tmp
 MANIFEST
 sendapatch.se
 *.swp
+src/pylibmc/_version.py

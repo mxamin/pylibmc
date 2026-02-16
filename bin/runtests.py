@@ -1,4 +1,4 @@
-#!./bin/with-memcached python3
+#!./bin/with-memcached python
 
 if __name__ == "__main__":
     import pytest

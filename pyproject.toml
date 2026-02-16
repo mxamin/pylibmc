@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=69", "wheel", "setuptools_scm[toml]>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "src/pylibmc/_version.py"
+local_scheme = "no-local-version"
+
+[tool.cibuildwheel]
+build = [
+    "cp39-*",
+    "cp310-*",
+    "cp311-*",
+    "cp312-*",
+    "cp313-*",
+    "cp314-*"
+]
+build-verbosity = 1
+build-frontend = "build"
+before-test = "pip install --upgrade -r requirements_test.txt"
+test-command = "cd {package} && MEMCACHED_ARGS='-u root -p 11211' ./bin/with-memcached python ./bin/runtests.py"
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64", "aarch64"]
+
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "arm64"]
+environment = { LIBMEMCACHED = "/opt/homebrew/opt/libmemcached" }
+
+[[tool.cibuildwheel.overrides]]
+select = "*-manylinux*"
+before-all = "yum makecache && yum install -y libmemcached-devel memcached"
+
+[[tool.cibuildwheel.overrides]]
+select = "*-musllinux*"
+before-all = "apk update && apk add --no-cache libmemcached-dev memcached"
+
+[[tool.cibuildwheel.overrides]]
+select = "*-macosx*"
+before-all = "brew update && brew install libmemcached memcached"
+
+[[tool.cibuildwheel.overrides]]
+select = "*-macosx_arm64"
+inherit.environment = "append"
+environment = { MACOSX_DEPLOYMENT_TARGET = "15.0" }

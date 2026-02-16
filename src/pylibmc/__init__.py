@@ -70,10 +70,15 @@ See http://sendapatch.se/projects/pylibmc/
 
 import _pylibmc
 from _pylibmc import *
-from _pylibmc import __version__
+from _pylibmc import __version__ as _ext_version
 from .consts import hashers, distributions
 from .client import Client
 from .pools import ClientPool, ThreadMappedPool
+
+try:
+    from ._version import version as __version__
+except ImportError:
+    __version__ = _ext_version
 
 def build_info():
     return ("pylibmc %s for libmemcached %s (compression=%s, sasl=%s)"

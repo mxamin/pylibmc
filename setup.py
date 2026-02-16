@@ -94,12 +94,11 @@ if cmd == "gen-setup":
 
 with open("README.rst", encoding="utf-8") as r:
     readme_text = r.read()
-with open("src/pylibmc-version.h", encoding="utf-8") as r:
-    version = r.read().strip().split("\"")[1]
 
 setup(
     name="pylibmc",
-    version=version,
+    use_scm_version=True,
+    setup_requires=["setuptools_scm>=8"],
     url="https://sendapatch.se/projects/pylibmc/",
     project_urls={
         "Source": "https://github.com/lericson/pylibmc",

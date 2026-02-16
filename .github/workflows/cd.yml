@@ -4,84 +4,134 @@ on:
     tags:
     - '*'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_name != 'master' }}
+
+permissions: {}
+
 jobs:
-
-  build_wheels:
-    name: Build wheel for ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.13
-
-      - name: Set up QEMU
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        uses: docker/setup-qemu-action@v1
-
-      - name: Install cibuildwheel
-        run: |
-          python -m pip install cibuildwheel
-
-      - name: Install prebuilt Universal libraries for macOS
-        if: ${{ matrix.os == 'macos-latest' }}
-        run: |
-          curl --output libs.tgz https://bsg.lericson.se/pylibmc_macos_libs.tar.gz
-          tar -C /usr/local -xzmvf libs.tgz
-          rm libs.tgz
-
-      - name: Build wheels
-        env:
-          CIBW_SKIP: "*-musllinux* pp*"
-          CIBW_ARCHS_MACOS: "x86_64 arm64"
-          CIBW_ARCHS_LINUX: "x86_64 aarch64"
-          CIBW_BEFORE_BUILD_LINUX: "yum install -y libmemcached-devel"
-          # We set DYLD_LIBRARY_PATH because of what appears to be a bug in
-          # `delocate`, the program that bundles up the shared library
-          # dependencies into the wheel file. The linker makes a link like
-          # @rpath/libmemcached.11.dylib or similar, and delocate is unable to
-          # resolve this @rpath macro into /usr/local/lib for some reason. It
-          # would appear that delocate expects an LC_RPATH command to be listed
-          # by `otool -l _pylibmc....so`, which it isn't. This does not seem to
-          # be a problem for the DYLD system itself though, so again, likely a
-          # bug in delocate. Fix by encouraging with DYLD_LIBRARY_PATH.
-          CIBW_REPAIR_WHEEL_COMMAND_MACOS: "env DYLD_LIBRARY_PATH=/usr/local/lib delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}"
-        run: |
-          cibuildwheel --output-dir ./wheelhouse
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: wheels
-          path: ./wheelhouse/*.whl
-
   build_sdist:
     name: Build source distribution
     runs-on: ubuntu-latest
+    services:
+      memcached:
+        image: memcached:1.6.12
+        ports:
+          - 11211:11211
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/checkout@v6.0.1
         with:
-          python-version: '3.7'
-
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Setup Python
+        uses: actions/setup-python@v6.1.0
+        with:
+          python-version: '3.14'
+      - name: Install build dependencies
+        run: |
+          pip install --upgrade pip build setuptools setuptools_scm
       - name: Build sdist
         run: |
-          python setup.py sdist
-
+          python -m build --sdist
+          ls -l dist
+          python -c "import setuptools_scm; print(setuptools_scm.get_version())"
+      - name: Install test dependencies
+        run: |
+          sudo apt-get update -y -q
+          sudo apt-get install -y -q libmemcached-dev
+          pip install --upgrade -r ./requirements_test.txt
+          pip install dist/*.tar.gz
+      - name: Run tests
+        run: python bin/runtests.py -v tests --with-doctest
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: dist
           path: dist/*.tar.gz
 
+  generate_wheels_matrix:
+    name: Generate wheels matrix
+    runs-on: ubuntu-latest
+    outputs:
+      include: ${{ steps.set-matrix.outputs.include }}
+    steps:
+      - uses: actions/checkout@v6.0.1
+      - name: Install cibuildwheel
+        run: pipx install cibuildwheel==3.3.1
+      - id: set-matrix
+        run: |
+          MATRIX=$(
+            {
+              cibuildwheel --print-build-identifiers --platform linux \
+              | jq -nRc '{"only": inputs, "os": "ubuntu-22.04"}' \
+              | sed -e '/aarch64/s|ubuntu-22.04|ubuntu-22.04-arm|' \
+              && cibuildwheel --print-build-identifiers --platform macos \
+              | jq -nRc '{"only": inputs, "os": "macos-latest"}'
+            } | jq -sc
+          )
+          echo "include=$MATRIX"
+          echo "include=$MATRIX" >> $GITHUB_OUTPUT
+
+  build_wheels:
+    name: Build for ${{ matrix.only }}
+    needs: [generate_wheels_matrix]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.generate_wheels_matrix.outputs.include) }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v6.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Setup QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3.7.0
+        with:
+          platforms: all
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v3.3.1
+        with:
+          only: ${{ matrix.only }}
+      - name: Upload wheels
+        uses: actions/upload-artifact@v6.0.0
+        with:
+          path: ./wheelhouse/*.whl
+          name: pylibmc-${{ matrix.only }}
+
+  release:
+    name: Create GitHub release
+    needs:
+      - build_wheels
+      - build_sdist
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download wheel artifacts
+        uses: actions/download-artifact@v7.0.0
+        with:
+          pattern: pylibmc-*
+          merge-multiple: true
+          path: wheels
+      - name: Download sdist artifact
+        uses: actions/download-artifact@v7.0.0
+        with:
+          name: dist
+          path: dist
+      - name: Release on GitHub
+        uses: softprops/action-gh-release@v2.5.0
+        with:
+          draft: true
+          files: |
+            wheels/*.whl
+            dist/*.tar.gz
+
+  # TODO: Copied from the old workflow. It's not tested yet.
   #upload_pypi:
   #  needs: [build_wheels, build_sdist]
   #  runs-on: ubuntu-latest
@@ -101,23 +151,3 @@ jobs:
   #      with:
   #        user: ${{ secrets.PYPI_USERNAME }}
   #        password: ${{ secrets.PYPI_PASSWORD }}
-
-  release:
-    name: Create GitHub release
-    needs:
-      - build_wheels
-      - build_sdist
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-      - name: Make zip of artifacts
-        run: |
-          zip -0 artifacts.zip wheels/*.whl dist/*.tar.gz
-      - name: Release on GitHub
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            wheels/*.whl
-            dist/*.tar.gz
-            artifacts.zip
