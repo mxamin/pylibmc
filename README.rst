@@ -4,8 +4,16 @@ See `the documentation at sendapatch.se/projects/pylibmc/`__ for more informatio
 
 __ http://sendapatch.se/projects/pylibmc/
 
-.. image:: https://github.com/lericson/pylibmc/actions/workflows/ci.yml/badge.svg
-   :target: https://github.com/lericson/pylibmc/actions/workflows/ci.yml
+.. image:: https://github.com/mxamin/pylibmc2/actions/workflows/ci.yml/badge.svg
+   :target: https://github.com/mxamin/pylibmc2/actions/workflows/ci.yml
+
+**Fork notice:** `mxamin/pylibmc2 <https://github.com/mxamin/pylibmc2>`_ is an
+independently maintained fork of
+`lericson/pylibmc <https://github.com/lericson/pylibmc>`_, created after the
+original project became inactive from a release and maintenance perspective; it
+exists to keep compatibility fixes, build updates, and wheels available to users
+while avoiding PyPI package conflicts, and may be discontinued if upstream
+maintenance resumes.
 
 New in version 1.6.0
 ====================
