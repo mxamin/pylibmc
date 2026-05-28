@@ -105,15 +105,15 @@ Links and resources
 ===================
 
 * sendapatch.se: `sendapatch.se/`__
-* GitHub: `github.com/lericson/pylibmc`__
-* PyPI: `pypi.python.org/pypi/pylibmc`__
+* GitHub: `github.com/mxamin/pylibmc2`__
+* PyPI: `pypi.org/project/pylibmc2/`__
 * libmemcached: `tangent.org/552/libmemcached.html`__
 * memcached: `memcached.org/`__
 * BitCoin fund: `12dveKhqiJWCY8zXT4kaHdHELXPeGAUo9h`__
 
 __ http://sendapatch.se/
-__ http://github.com/lericson/pylibmc
-__ http://pypi.python.org/pypi/pylibmc
+__ https://github.com/mxamin/pylibmc2
+__ https://pypi.org/project/pylibmc2/
 __ libmemcached_
 __ http://memcached.org/
 __ bitcoin:12dveKhqiJWCY8zXT4kaHdHELXPeGAUo9h

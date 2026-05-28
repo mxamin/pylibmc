@@ -96,12 +96,12 @@ with open("README.rst", encoding="utf-8") as r:
     readme_text = r.read()
 
 setup(
-    name="pylibmc",
+    name="pylibmc2",
     use_scm_version=True,
     setup_requires=["setuptools_scm>=8"],
-    url="https://sendapatch.se/projects/pylibmc/",
+    url="https://github.com/mxamin/pylibmc2",
     project_urls={
-        "Source": "https://github.com/lericson/pylibmc",
+        "Source": "https://github.com/mxamin/pylibmc2",
     },
     author="Ludvig Ericson",
     author_email="ludvig@lericson.se",

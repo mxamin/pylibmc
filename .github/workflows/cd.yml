@@ -100,7 +100,7 @@ jobs:
         uses: actions/upload-artifact@v6.0.0
         with:
           path: ./wheelhouse/*.whl
-          name: pylibmc-${{ matrix.only }}
+          name: pylibmc2-${{ matrix.only }}
 
   release:
     name: Create GitHub release
@@ -114,7 +114,7 @@ jobs:
       - name: Download wheel artifacts
         uses: actions/download-artifact@v7.0.0
         with:
-          pattern: pylibmc-*
+          pattern: pylibmc2-*
           merge-multiple: true
           path: wheels
       - name: Download sdist artifact

@@ -27,7 +27,7 @@ libmemcached would end up in ``/opt/local``, hence
 
 Using ``pip`` you achieve the same thing as follows::
 
-    pip install pylibmc --install-option="--with-libmemcached=/opt/local"
+    pip install pylibmc2 --install-option="--with-libmemcached=/opt/local"
 
 Note that `/usr/local` is typically on the library search path. If it is not,
 you'd probably want to fix that instead.
@@ -36,4 +36,4 @@ Homebrew and MacOS
 ------------------
 
     brew install libmemcached
-    pip install pylibmc
+    pip install pylibmc2

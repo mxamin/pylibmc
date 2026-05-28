@@ -52,7 +52,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'pylibmc'
+project = 'pylibmc2'
 copyright = '2018, Ludvig Ericson'
 
 # The version info for the project you're documenting, acts as replacement for
