@@ -1,3 +1,9 @@
+.. image:: https://github.com/mxamin/pylibmc2/actions/workflows/ci.yml/badge.svg
+   :target: https://github.com/mxamin/pylibmc2/actions/workflows/ci.yml
+
+.. image:: https://github.com/mxamin/pylibmc2/actions/workflows/cd.yml/badge.svg
+   :target: https://github.com/mxamin/pylibmc2/actions/workflows/cd.yml
+
 Fork notice
 ===========
 
@@ -9,14 +15,43 @@ exists to keep compatibility fixes, build updates, and wheels available to users
 while avoiding PyPI package conflicts, and may be discontinued if upstream
 maintenance resumes.
 
+Using pylibmc2 when dependencies request pylibmc
+================================================
+
+For uv-managed applications, install ``pylibmc2`` directly and tell uv to omit
+the original ``pylibmc`` dependency if another library requests it transitively:
+
+.. code-block:: toml
+
+   [project]
+   dependencies = [
+     "some-library-that-depends-on-pylibmc",
+     "pylibmc2",
+   ]
+
+   [tool.uv]
+   exclude-dependencies = [
+     "pylibmc",
+   ]
+
+Then refresh the lockfile and environment:
+
+.. code-block:: console
+
+   uv lock --upgrade
+   uv sync
+
+``pylibmc2`` provides the same runtime import expected by those libraries,
+typically ``import pylibmc``.
+
+About pylibmc
+=============
+
 `pylibmc` is a Python client for `memcached <http://memcached.org/>`_ written in C.
 
 See `the documentation at sendapatch.se/projects/pylibmc/`__ for more information.
 
 __ http://sendapatch.se/projects/pylibmc/
-
-.. image:: https://github.com/mxamin/pylibmc2/actions/workflows/ci.yml/badge.svg
-   :target: https://github.com/mxamin/pylibmc2/actions/workflows/ci.yml
 
 New in version 1.6.0
 ====================
