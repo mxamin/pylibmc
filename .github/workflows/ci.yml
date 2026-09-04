@@ -36,7 +36,7 @@ jobs:
     - name: memcached stats
       run: echo "stats settings" | netcat localhost 11211 -w 3
     - name: Install package
-      run: python setup.py install
+      run: pip install .
     - name: Set LIBMEMCACHED_VERSION
       run: echo LIBMEMCACHED_VERSION="$(python -c 'import pylibmc; print(pylibmc.libmemcached_version)')" >> $GITHUB_ENV
     - name: Log versions
