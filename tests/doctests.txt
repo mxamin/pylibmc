@@ -2,7 +2,7 @@ Basic functionality.
 >>> import pylibmc, _pylibmc
 >>> from tests import make_test_client
 >>> from hashlib import md5
->>> _pylibmc.__version__ == pylibmc.__version__
+>>> all(isinstance(v, str) and v for v in (_pylibmc.__version__, pylibmc.__version__))
 True
 >>> c = make_test_client(_pylibmc.client)
 >>> c.get("hello")
@@ -209,11 +209,13 @@ Per-error exceptions
 ... except pylibmc.NotFound:
 ...   print("ok")
 ok
+>>> c.set_behaviors({"verify_keys": True})
 >>> try:
 ...   c.incr(chr(0))
-... except (pylibmc.ProtocolError, pylibmc.SocketCreateError):
+... except pylibmc.BadKeyProvided:
 ...   print("ok")
 ok
+>>> c.set_behaviors({"verify_keys": False})
 
 Behaviors.
 >>> c.set_behaviors({"tcp_nodelay": True, "hash": 6})

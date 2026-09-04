@@ -10,3 +10,6 @@ MANIFEST
 sendapatch.se
 *.swp
 src/pylibmc/_version.py
+.venv
+src/pylibmc.egg-info
+src/_pylibmc*.so
