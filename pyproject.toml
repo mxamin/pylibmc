@@ -25,7 +25,10 @@ archs = ["x86_64", "aarch64"]
 
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"]
-environment = { LIBMEMCACHED = "/opt/homebrew/opt/libmemcached" }
+# The Homebrew bottles on the macOS 15 runners are built for macOS 15, so the
+# wheels have to target it as well, otherwise delocate refuses to bundle
+# libmemcached into them.
+environment = { MACOSX_DEPLOYMENT_TARGET = "15.0" }
 
 [[tool.cibuildwheel.overrides]]
 select = "*-manylinux*"
@@ -42,4 +45,9 @@ before-all = "brew update && brew install libmemcached memcached"
 [[tool.cibuildwheel.overrides]]
 select = "*-macosx_arm64"
 inherit.environment = "append"
-environment = { MACOSX_DEPLOYMENT_TARGET = "15.0" }
+environment = { LIBMEMCACHED = "/opt/homebrew/opt/libmemcached" }
+
+[[tool.cibuildwheel.overrides]]
+select = "*-macosx_x86_64"
+inherit.environment = "append"
+environment = { LIBMEMCACHED = "/usr/local/opt/libmemcached" }

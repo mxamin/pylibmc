@@ -67,7 +67,8 @@ jobs:
               | jq -nRc '{"only": inputs, "os": "ubuntu-22.04"}' \
               | sed -e '/aarch64/s|ubuntu-22.04|ubuntu-22.04-arm|' \
               && cibuildwheel --print-build-identifiers --platform macos \
-              | jq -nRc '{"only": inputs, "os": "macos-latest"}'
+              | jq -nRc '{"only": inputs, "os": "macos-15"}' \
+              | sed -e '/x86_64/s|macos-15|macos-15-intel|'
             } | jq -sc
           )
           echo "include=$MATRIX"
