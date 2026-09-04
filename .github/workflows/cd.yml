@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       memcached:
-        image: memcached:1.6.12
+        image: memcached:1.6.45
         ports:
           - 11211:11211
     steps:
